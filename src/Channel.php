@@ -11,9 +11,9 @@
 
 namespace Raylin666\Pool;
 
+use SplQueue;
 use Raylin666\Contract\ConnectionPoolInterface;
 use Raylin666\Util\Coroutine;
-use SplQueue;
 use Raylin666\Util\Coroutine\Channel as UtilCoroutineChannel;
 
 /**
