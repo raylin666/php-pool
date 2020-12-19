@@ -9,15 +9,15 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace Raylin666\Pool;
+namespace Raylin666\Pool\Pool;
 
 use Raylin666\Contract\PoolOptionInterface;
 
 /**
- * Class PoolOption
- * @package Raylin666\Pool
+ * Class Option
+ * @package Raylin666\Pool\\Pool
  */
-class PoolOption implements PoolOptionInterface
+class Option implements PoolOptionInterface
 {
     /**
      * Min connections of pool.
@@ -68,7 +68,7 @@ class PoolOption implements PoolOptionInterface
     private $maxIdleTime = 60.0;
 
     /**
-     * PoolOption constructor.
+     * Option constructor.
      * @param int   $minConnections
      * @param int   $maxConnections
      * @param float $connectTimeout
@@ -104,7 +104,7 @@ class PoolOption implements PoolOptionInterface
 
     /**
      * @param int $maxConnections
-     * @return PoolOption
+     * @return Option
      */
     public function setMaxConnections(int $maxConnections): self
     {
@@ -124,7 +124,7 @@ class PoolOption implements PoolOptionInterface
 
     /**
      * @param int $minConnections
-     * @return PoolOption
+     * @return Option
      */
     public function setMinConnections(int $minConnections): self
     {
@@ -144,7 +144,7 @@ class PoolOption implements PoolOptionInterface
 
     /**
      * @param float $connectTimeout
-     * @return PoolOption
+     * @return Option
      */
     public function setConnectTimeout(float $connectTimeout): self
     {
@@ -164,7 +164,7 @@ class PoolOption implements PoolOptionInterface
 
     /**
      * @param float $heartbeat
-     * @return PoolOption
+     * @return Option
      */
     public function setHeartbeat(float $heartbeat): self
     {
@@ -184,7 +184,7 @@ class PoolOption implements PoolOptionInterface
 
     /**
      * @param float $waitTimeout
-     * @return PoolOption
+     * @return Option
      */
     public function setWaitTimeout(float $waitTimeout): self
     {
@@ -204,7 +204,7 @@ class PoolOption implements PoolOptionInterface
 
     /**
      * @param float $maxIdleTime
-     * @return PoolOption
+     * @return Option
      */
     public function setMaxIdleTime(float $maxIdleTime): self
     {

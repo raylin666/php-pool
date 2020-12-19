@@ -9,26 +9,26 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace Raylin666\Pool\Contracts;
+namespace Raylin666\Pool\Contract;
 
 use Throwable;
 use RuntimeException;
-use Raylin666\Contract\ConnectionPoolInterface;
+use Raylin666\Util\Queue;
+use Raylin666\Pool\Pool\Option;
 use Raylin666\Contract\PoolInterface;
 use Raylin666\Contract\PoolOptionInterface;
-use Raylin666\Pool\Channel;
-use Raylin666\Pool\PoolOption;
+use Raylin666\Contract\ConnectionPoolInterface;
 
 /**
  * Class PoolAbstract
- * @package Raylin666\Pool\Contracts
+ * @package Raylin666\Pool\Contract
  */
 abstract class PoolAbstract implements PoolInterface
 {
     /**
-     * @var Channel
+     * @var Queue
      */
-    protected $channel;
+    protected $queue;
 
     /**
      * @var PoolOptionInterface
@@ -42,14 +42,14 @@ abstract class PoolAbstract implements PoolInterface
 
     /**
      * PoolAbstract constructor.
-     * @param array $config
+     * @param array $options
      */
-    public function __construct(array $config = [])
+    public function __construct(array $options = [])
     {
-        $this->initOption($config);
+        $this->initOption($options);
 
-        $this->channel = make(
-            Channel::class,
+        $this->queue = make(
+            Queue::class,
             [
                 'capacity' => $this->option->getMaxConnections()
             ]
@@ -67,11 +67,11 @@ abstract class PoolAbstract implements PoolInterface
     }
 
     /**
-     * @return Channel
+     * @return Queue
      */
-    public function getChannel(): Channel
+    public function getQueue(): Queue
     {
-        return $this->channel;
+        return $this->queue;
     }
 
     /**
@@ -87,7 +87,7 @@ abstract class PoolAbstract implements PoolInterface
      */
     public function getConnectionsNum(): int
     {
-        return $this->channel->length();
+        return $this->queue->length();
     }
 
     /**
@@ -105,12 +105,12 @@ abstract class PoolAbstract implements PoolInterface
                 ++$this->currentConnections;
                 return $this->createConnection();
             }
-        } catch (Throwable $throwable) {
+        } catch (Throwable $e) {
             --$this->currentConnections;
-            throw $throwable;
+            throw $e;
         }
 
-        $connection = $this->channel->pop($this->option->getWaitTimeout());
+        $connection = $this->queue->pop($this->option->getWaitTimeout());
 
         if (! $connection instanceof ConnectionPoolInterface) {
             throw new RuntimeException('Connection pool exhausted. Cannot establish new connection before wait_timeout.');
@@ -120,22 +120,17 @@ abstract class PoolAbstract implements PoolInterface
     }
 
     /**
-     * @return ConnectionPoolInterface
-     */
-    abstract protected function createConnection(): ConnectionPoolInterface;
-
-    /**
      * @param ConnectionPoolInterface $connectionPool
      */
     public function release(ConnectionPoolInterface $connectionPool): void
     {
         // TODO: Implement release() method.
 
-        $this->channel->push($connectionPool);
+        $this->queue->push($connectionPool);
     }
 
     /**
-     * flush channel connections pool
+     * flush queue connections pool
      */
     public function flush(): void
     {
@@ -144,10 +139,10 @@ abstract class PoolAbstract implements PoolInterface
         $num = $this->getConnectionsNum();
 
         if ($num > 0) {
-            while ($this->currentConnections > $this->option->getMinConnections() && $conn = $this->channel->pop(0.001)) {
+            while ($this->currentConnections > $this->option->getMinConnections() && $conn = $this->queue->pop(0.001)) {
                 try {
                     $conn->close();
-                } catch (Throwable $exception) {
+                } catch (Throwable $e) {
                     // ...
                 } finally {
                     --$this->currentConnections;
@@ -169,11 +164,11 @@ abstract class PoolAbstract implements PoolInterface
     {
         $num = $this->getConnectionsNum();
 
-        if ($num > 0 && $conn = $this->channel->pop(0.001)) {
+        if ($num > 0 && $conn = $this->queue->pop(0.001)) {
             if ($must || ! $conn->check()) {
                 try {
                     $conn->close();
-                } catch (Throwable $exception) {
+                } catch (Throwable $e) {
                     // ...
                 } finally {
                     --$this->currentConnections;
@@ -183,6 +178,11 @@ abstract class PoolAbstract implements PoolInterface
             }
         }
     }
+
+    /**
+     * @return ConnectionPoolInterface
+     */
+    abstract protected function createConnection(): ConnectionPoolInterface;
 
     /**
      * 初始化连接池配置
@@ -197,7 +197,7 @@ abstract class PoolAbstract implements PoolInterface
         }
 
         $this->option = make(
-            PoolOption::class,
+            Option::class,
             [
                 'minConnections' => $minConnections,
                 'maxConnections' => $maxConnections,
@@ -214,7 +214,7 @@ abstract class PoolAbstract implements PoolInterface
      */
     protected function initConnection()
     {
-        if ($this->getConnectionsNum() === 0 && $this->getCurrentConnections() === 0) {
+        if ($this->getConnectionsNum() === 0 && $this->currentConnections === 0) {
             for ($i = $this->option->getMinConnections(); $i--;) {
                 ++$this->currentConnections;
                 $this->release(

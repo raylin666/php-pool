@@ -20,10 +20,10 @@
     }
   ],
   "require": {
-    "php": ">=7.2.0",
+    "php": ">=7.3.0",
     "ext-swoole": ">=4.4.5",
     "ext-json": ">=1.0",
-    "ext-openssl": ">=7.2",
+    "ext-openssl": ">=7.3",
     "raylin666/util": "dev-master"
   },
   "autoload": {
