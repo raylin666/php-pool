@@ -11,9 +11,8 @@
 
 namespace Raylin666\Pool;
 
-use Raylin666\Pool\Pool\Connection;
-use Raylin666\Pool\Contract\PoolAbstract;
 use Raylin666\Contract\ConnectionPoolInterface;
+use Raylin666\Pool\Contract\Pool as PoolAbstract;
 
 /**
  * Class Pool
@@ -22,37 +21,20 @@ use Raylin666\Contract\ConnectionPoolInterface;
 class Pool extends PoolAbstract
 {
     /**
-     * 返回连接对象，例如: return new PDO(...)
-     * @var callable
-     */
-    protected $callback;
-
-    /**
-     * 连接器类名字符串
-     * @var string
-     */
-    protected $connection = Connection::class;
-
-    /**
      * Pool constructor.
-     * @param callable $callback    返回连接对象，例如: return new PDO(...);
-     * @param array    $options     连接池配置参数项
+     * @param PoolConfig $config
      */
-    public function __construct(callable $callback, array $options = [])
+    public function __construct(PoolConfig $config)
     {
-        $this->callback = $callback;
-        parent::__construct($options);
+        parent::__construct($config->getConnectionCallback(), $config->getOptions());
     }
 
     /**
-     * 设置连接器类名字符串, 将用来实例化连接器对象
-     * @param string $connectionString      Connection::class
-     * @return Pool
+     * @return string
      */
-    public function withConnection(string $connectionString): self
+    protected function getWithConnectionPool(): string
     {
-        $this->connection = $connectionString;
-        return $this;
+        return Connection::class;
     }
 
     /**
@@ -63,10 +45,10 @@ class Pool extends PoolAbstract
         // TODO: Implement createConnection() method.
 
         return make(
-            $this->connection,
+            $this->getWithConnectionPool(),
             [
-                'pool' => $this,
-                'callback' => $this->callback
+                'pool'      =>   $this,
+                'callback'  =>   $this->getConnectionCallback()
             ]
         );
     }

@@ -11,24 +11,30 @@
 
 namespace Raylin666\Pool\Contract;
 
-use Throwable;
-use RuntimeException;
-use Raylin666\Util\Queue;
-use Raylin666\Pool\Pool\Option;
+use Raylin666\Contract\ConnectionPoolInterface;
 use Raylin666\Contract\PoolInterface;
 use Raylin666\Contract\PoolOptionInterface;
-use Raylin666\Contract\ConnectionPoolInterface;
+use Raylin666\Pool\Option;
+use Raylin666\Util\Queue;
+use RuntimeException;
+use Throwable;
 
 /**
- * Class PoolAbstract
+ * Class Pool
  * @package Raylin666\Pool\Contract
  */
-abstract class PoolAbstract implements PoolInterface
+abstract class Pool implements PoolInterface
 {
     /**
      * @var Queue
      */
     protected $queue;
+
+    /**
+     * 连接回调
+     * @var callable
+     */
+    protected $connectionCallback;
 
     /**
      * @var PoolOptionInterface
@@ -41,12 +47,15 @@ abstract class PoolAbstract implements PoolInterface
     protected $currentConnections = 0;
 
     /**
-     * PoolAbstract constructor.
-     * @param array $options
+     * Pool constructor.
+     * @param callable $connectionCallback
+     * @param array    $options
      */
-    public function __construct(array $options = [])
+    public function __construct(callable $connectionCallback, array $options = [])
     {
         $this->initOption($options);
+
+        $this->connectionCallback = $connectionCallback;
 
         $this->queue = make(
             Queue::class,
@@ -56,38 +65,6 @@ abstract class PoolAbstract implements PoolInterface
         );
 
         $this->initConnection();
-    }
-
-    /**
-     * @return PoolOptionInterface
-     */
-    public function getOption(): PoolOptionInterface
-    {
-        return $this->option;
-    }
-
-    /**
-     * @return Queue
-     */
-    public function getQueue(): Queue
-    {
-        return $this->queue;
-    }
-
-    /**
-     * @return int
-     */
-    public function getCurrentConnections(): int
-    {
-        return $this->currentConnections;
-    }
-
-    /**
-     * @return int
-     */
-    public function getConnectionsNum(): int
-    {
-        return $this->queue->length();
     }
 
     /**
@@ -127,6 +104,16 @@ abstract class PoolAbstract implements PoolInterface
         // TODO: Implement release() method.
 
         $this->queue->push($connectionPool);
+    }
+
+    /**
+     * @return PoolOptionInterface
+     */
+    public function getOption(): PoolOptionInterface
+    {
+        // TODO: Implement getOption() method.
+
+        return $this->option;
     }
 
     /**
@@ -185,6 +172,38 @@ abstract class PoolAbstract implements PoolInterface
     abstract protected function createConnection(): ConnectionPoolInterface;
 
     /**
+     * @return Queue
+     */
+    public function getQueue(): Queue
+    {
+        return $this->queue;
+    }
+
+    /**
+     * @return callable
+     */
+    public function getConnectionCallback(): callable
+    {
+        return $this->connectionCallback;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCurrentConnections(): int
+    {
+        return $this->currentConnections;
+    }
+
+    /**
+     * @return int
+     */
+    public function getConnectionsNum(): int
+    {
+        return $this->queue->length();
+    }
+
+    /**
      * 初始化连接池配置
      * @param array $options
      */
@@ -210,16 +229,14 @@ abstract class PoolAbstract implements PoolInterface
     }
 
     /**
-     * 初始化连接池
+     * 初始化(预创建)连接池
      */
     protected function initConnection()
     {
         if ($this->getConnectionsNum() === 0 && $this->currentConnections === 0) {
             for ($i = $this->option->getMinConnections(); $i--;) {
                 ++$this->currentConnections;
-                $this->release(
-                    $this->createConnection()
-                );
+                $this->release($this->createConnection());
             }
         }
     }

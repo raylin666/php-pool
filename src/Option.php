@@ -9,13 +9,13 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace Raylin666\Pool\Pool;
+namespace Raylin666\Pool;
 
 use Raylin666\Contract\PoolOptionInterface;
 
 /**
  * Class Option
- * @package Raylin666\Pool\\Pool
+ * @package Raylin666\Pool
  */
 class Option implements PoolOptionInterface
 {

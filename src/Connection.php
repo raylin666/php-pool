@@ -9,29 +9,23 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace Raylin666\Pool\Pool;
+namespace Raylin666\Pool;
 
-use Raylin666\Pool\Contract\ConnectionAbstract;
+use Raylin666\Pool\Contract\Connection as ConnectionAbstract;
 
 /**
  * Class Connection
- * @package Raylin666\Pool\Pool
+ * @package Raylin666\Pool
  */
 class Connection extends ConnectionAbstract
 {
     /**
-     * 获取可活跃的连接
-     * @return mixed
+     * @return mixed|null
      */
-    public function getActiveConnection()
+    protected function getActiveConnection()
     {
         // TODO: Implement getActiveConnection() method.
 
-        // 是否需要重连, 需要则重连
-        if ($this->isReconnectConnection()) {
-            $this->reconnect();
-        }
-
-        return $this->connection;
+        return $this->reconnect();
     }
 }

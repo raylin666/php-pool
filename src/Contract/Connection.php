@@ -12,20 +12,22 @@
 namespace Raylin666\Pool\Contract;
 
 use Raylin666\Contract\ConnectionPoolInterface;
+use Raylin666\Contract\PoolInterface;
 
 /**
- * Class ConnectionAbstract
+ * Class Connection
  * @package Raylin666\Pool\Contract
  */
-abstract class ConnectionAbstract implements ConnectionPoolInterface
+abstract class Connection implements ConnectionPoolInterface
 {
     /**
      * 连接池
-     * @var PoolAbstract
+     * @var PoolInterface
      */
     protected $pool;
 
     /**
+     * 闭包回调具体连接对象的实现
      * @var callable
      */
     protected $callback;
@@ -44,57 +46,38 @@ abstract class ConnectionAbstract implements ConnectionPoolInterface
 
     /**
      * ConnectionAbstract constructor.
-     * @param PoolAbstract $pool
+     * @param PoolInterface $pool
      * @param callable     $callback    返回连接对象，例如: return new PDO(...);
      */
-    public function __construct(PoolAbstract $pool, callable $callback)
+    public function __construct(PoolInterface $pool, callable $callback)
     {
         $this->pool = $pool;
         $this->callback = $callback;
     }
 
     /**
-     * @return PoolAbstract
+     * @return mixed
      */
-    public function getPool(): PoolAbstract
+    public function connect()
     {
-        return $this->pool;
-    }
-
-    /**
-     * @return float
-     */
-    public function getLastUseTime(): float
-    {
-        return $this->lastUseTime;
-    }
-
-    /**
-     * @return callable
-     */
-    public function getCallback(): callable
-    {
-        return $this->callback;
+        $this->connection = ($this->callback)();
+        return $this->connection;
     }
 
     /**
      * @return mixed
      */
-    protected function getConnectionObject()
-    {
-        return ($this->callback)();
-    }
-
-    /**
-     * @return bool
-     */
-    public function reconnect(): bool
+    public function reconnect()
     {
         // TODO: Implement reconnect() method.
 
-        $this->connection = $this->getConnectionObject();
-        $this->lastUseTime = microtime(true);
-        return true;
+        if (empty($this->connection) || (! $this->check())) {
+            $this->close();
+            $this->lastUseTime = microtime(true);
+            return $this->connect();
+        }
+
+        return $this->connection;
     }
 
     /**
@@ -134,19 +117,6 @@ abstract class ConnectionAbstract implements ConnectionPoolInterface
     }
 
     /**
-     * 是否需要重连,如需要 则调用 $this->reconnect()
-     * @return bool
-     */
-    protected function isReconnectConnection(): bool
-    {
-        if (empty($this->connection) || (! $this->check())) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * 获取连接
      * @return mixed
      */
@@ -156,8 +126,8 @@ abstract class ConnectionAbstract implements ConnectionPoolInterface
     }
 
     /**
-     * Connect and return the active connection
+     * 连接并返回活跃连接
      * @return mixed
      */
-    abstract public function getActiveConnection();
+    abstract protected function getActiveConnection();
 }

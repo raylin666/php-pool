@@ -1,12 +1,12 @@
 # Pool 连接池 - Swoole 协程
 
 [![GitHub release](https://img.shields.io/github/release/raylin666/pool.svg)](https://github.com/raylin666/pool/releases)
-[![PHP version](https://img.shields.io/badge/php-%3E%207-orange.svg)](https://github.com/php/php-src)
+[![PHP version](https://img.shields.io/badge/php-%3E%207.2-orange.svg)](https://github.com/php/php-src)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](#LICENSE)
 
 ### 环境要求
 
-* PHP >=7.3
+* PHP >=7.2
 
 ### 安装说明
 
@@ -16,7 +16,42 @@ composer require "raylin666/pool"
 
 ### 使用方式
 
-## 更新日志
+```php
+
+<?php
+
+require_once 'vendor/autoload.php';
+
+$container = new \Raylin666\Container\Container();
+
+$container->singleton(\Raylin666\Contract\PoolInterface::class, function ($container) {
+    $factory = new \Raylin666\Pool\PoolFactory;
+    return $factory($container);
+});
+
+$container->get(\Raylin666\Contract\PoolInterface::class)->make(
+    'db.mysql',
+    function () {
+        return 'connection';
+    },
+    [
+        'max_connections' => 50
+    ]
+);
+
+$pool = new Raylin666\Pool\Pool(
+    $container->get(\Raylin666\Contract\PoolInterface::class)->get('db.mysql')
+);
+
+$connectionPool = $pool->get();     
+
+$connectionPool->getConnection();   // 输出: string(10) "connection"
+
+$connectionPool->release();
+
+```
+
+### 更新日志
 
 请查看 [CHANGELOG.md](CHANGELOG.md)
 
