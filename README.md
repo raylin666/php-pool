@@ -16,40 +16,7 @@ composer require "raylin666/pool"
 
 ### 使用方式
 
-```php
-
-<?php
-
-require_once 'vendor/autoload.php';
-
-$container = new \Raylin666\Container\Container();
-
-$container->singleton(\Raylin666\Contract\PoolInterface::class, function ($container) {
-    $factory = new \Raylin666\Pool\PoolFactory;
-    return $factory($container);
-});
-
-$container->get(\Raylin666\Contract\PoolInterface::class)->make(
-    'db.mysql',
-    function () {
-        return 'connection';
-    },
-    [
-        'max_connections' => 50
-    ]
-);
-
-$pool = new Raylin666\Pool\Pool(
-    $container->get(\Raylin666\Contract\PoolInterface::class)->get('db.mysql')
-);
-
-$connectionPool = $pool->get();     
-
-$connectionPool->getConnection();   // 输出: string(10) "connection"
-
-$connectionPool->release();
-
-```
+欢迎阅读源码.
 
 ### 更新日志
 

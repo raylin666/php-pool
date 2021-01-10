@@ -30,7 +30,7 @@ class PoolConfig
     /**
      * @var array
      */
-    protected $options;
+    protected $options = [];
 
     /**
      * PoolConfig constructor.
@@ -41,8 +41,8 @@ class PoolConfig
     public function __construct(string $name, callable $connectionCallback, array $options = [])
     {
         $this->name = $name;
-        $this->connectionCallback = $connectionCallback;
         $this->options = $options;
+        $this->connectionCallback = $connectionCallback;
     }
 
     /**
