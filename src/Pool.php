@@ -14,7 +14,7 @@ namespace Raylin666\Pool;
 use Raylin666\Contract\ConnectionPoolInterface;
 use Raylin666\Contract\PoolOptionInterface;
 use Raylin666\Contract\PoolInterface;
-use Raylin666\Util\Queue;
+use Raylin666\Utils\Queue;
 use RuntimeException;
 use Throwable;
 
@@ -37,7 +37,7 @@ abstract class Pool implements PoolInterface
     protected $queue;
 
     /**
-     * 连接池配置类
+     * 连接池基础配置
      * @var PoolConfig
      */
     protected $config;
@@ -49,11 +49,13 @@ abstract class Pool implements PoolInterface
     protected $connectionCallback;
 
     /**
+     * 连接池选项配置
      * @var PoolOptionInterface
      */
     protected $option;
 
     /**
+     * 当前的连接数量
      * @var int
      */
     protected $currentConnections = 0;
