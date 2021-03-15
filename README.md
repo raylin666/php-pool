@@ -28,33 +28,12 @@ $config = new \Raylin666\Pool\PoolConfig('database', function () {
     'max_connections' => 100,
 ]);
 
-class Pool extends \Raylin666\Pool\Pool
-{
-    protected function createConnection(): \Raylin666\Contract\ConnectionPoolInterface
-    {
-        // TODO: Implement createConnection() method.
+/**
+ * 扩展提供了SimplePool和SimpleConnection类可以直接使用简单的连接池.
+ * 也可以继承Pool和Connection, 实现相对复杂的业务连接池
+ */
 
-        return make(
-            Connection::class,
-            [
-                'pool' => $this,
-                'callback' => $this->getConnectionCallback(),
-            ]
-        );
-    }
-}
-
-class Connection extends \Raylin666\Pool\Connection
-{
-    protected function getActiveConnection()
-    {
-        // TODO: Implement getActiveConnection() method.
-
-        return $this->reconnect();
-    }
-}
-
-$pool = new Pool($config);  // 创建连接池
+$pool = new \Raylin666\Pool\SimplePool($config);  // 创建连接池
 $conn = $pool->get();       // 获取连接
 $conn->getConnection();     // 获取连接内容
 $conn->release();           // 连接发布(放回连接池)
