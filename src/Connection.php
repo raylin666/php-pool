@@ -74,7 +74,7 @@ abstract class Connection implements ConnectionPoolInterface
         if (empty($this->connection) || (! $this->check())) {
             $this->close();
             $this->lastUseTime = microtime(true);
-            return $this->connect();
+            $this->connect();
         }
 
         return $this->connection;

@@ -11,6 +11,8 @@
 
 namespace Raylin666\Pool;
 
+use Raylin666\Contract\PoolOptionInterface;
+
 /**
  * Class PoolConfig
  * @package Raylin666\Pool
@@ -28,20 +30,20 @@ class PoolConfig
     protected $connectionCallback;
 
     /**
-     * @var array
+     * @var PoolOptionInterface|null
      */
-    protected $options = [];
+    protected $poolOption;
 
     /**
      * PoolConfig constructor.
-     * @param string   $name
-     * @param callable $connectionCallback
-     * @param array    $options
+     * @param string                     $name
+     * @param callable                   $connectionCallback
+     * @param PoolOptionInterface|null   $poolOption
      */
-    public function __construct(string $name, callable $connectionCallback, array $options = [])
+    public function __construct(string $name, callable $connectionCallback, ?PoolOptionInterface $poolOption = null)
     {
         $this->name = $name;
-        $this->options = $options;
+        $this->poolOption = $poolOption;
         $this->connectionCallback = $connectionCallback;
     }
 
@@ -62,10 +64,10 @@ class PoolConfig
     }
 
     /**
-     * @return array
+     * @return PoolOptionInterface|null
      */
-    public function getOptions(): array
+    public function getPoolOption(): ?PoolOptionInterface
     {
-        return $this->options;
+        return $this->poolOption;
     }
 }

@@ -14,10 +14,10 @@ namespace Raylin666\Pool;
 use Raylin666\Contract\PoolOptionInterface;
 
 /**
- * Class Option
+ * Class PoolOption
  * @package Raylin666\Pool
  */
-class Option implements PoolOptionInterface
+class PoolOption implements PoolOptionInterface
 {
     /**
      * Min connections of pool.
@@ -68,31 +68,6 @@ class Option implements PoolOptionInterface
     private $maxIdleTime = 60.0;
 
     /**
-     * Option constructor.
-     * @param int   $minConnections
-     * @param int   $maxConnections
-     * @param float $connectTimeout
-     * @param float $waitTimeout
-     * @param float $heartbeat
-     * @param float $maxIdleTime
-     */
-    public function __construct(
-        int $minConnections,
-        int $maxConnections,
-        float $connectTimeout,
-        float $waitTimeout,
-        float $heartbeat,
-        float $maxIdleTime
-    ) {
-        $this->minConnections = $minConnections;
-        $this->maxConnections = $maxConnections;
-        $this->connectTimeout = $connectTimeout;
-        $this->waitTimeout = $waitTimeout;
-        $this->heartbeat = $heartbeat;
-        $this->maxIdleTime = $maxIdleTime;
-    }
-
-    /**
      * @return int
      */
     public function getMaxConnections(): int
@@ -106,7 +81,7 @@ class Option implements PoolOptionInterface
      * @param int $maxConnections
      * @return Option
      */
-    public function setMaxConnections(int $maxConnections): self
+    public function withMaxConnections(int $maxConnections): self
     {
         $this->maxConnections = $maxConnections;
         return $this;
@@ -126,7 +101,7 @@ class Option implements PoolOptionInterface
      * @param int $minConnections
      * @return Option
      */
-    public function setMinConnections(int $minConnections): self
+    public function withMinConnections(int $minConnections): self
     {
         $this->minConnections = $minConnections;
         return $this;
@@ -146,7 +121,7 @@ class Option implements PoolOptionInterface
      * @param float $connectTimeout
      * @return Option
      */
-    public function setConnectTimeout(float $connectTimeout): self
+    public function withConnectTimeout(float $connectTimeout): self
     {
         $this->connectTimeout = $connectTimeout;
         return $this;
@@ -166,7 +141,7 @@ class Option implements PoolOptionInterface
      * @param float $heartbeat
      * @return Option
      */
-    public function setHeartbeat(float $heartbeat): self
+    public function withHeartbeat(float $heartbeat): self
     {
         $this->heartbeat = $heartbeat;
         return $this;
@@ -186,7 +161,7 @@ class Option implements PoolOptionInterface
      * @param float $waitTimeout
      * @return Option
      */
-    public function setWaitTimeout(float $waitTimeout): self
+    public function withWaitTimeout(float $waitTimeout): self
     {
         $this->waitTimeout = $waitTimeout;
         return $this;
@@ -206,7 +181,7 @@ class Option implements PoolOptionInterface
      * @param float $maxIdleTime
      * @return Option
      */
-    public function setMaxIdleTime(float $maxIdleTime): self
+    public function withMaxIdleTime(float $maxIdleTime): self
     {
         $this->maxIdleTime = $maxIdleTime;
         return $this;

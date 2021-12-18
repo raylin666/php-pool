@@ -70,7 +70,7 @@ abstract class Pool implements PoolInterface
 
         $this->name = $config->getName();
 
-        $this->initOption($config->getOptions());
+        $this->initPoolOption($config->getPoolOption());
 
         $this->connectionCallback = $config->getConnectionCallback();
 
@@ -104,8 +104,16 @@ abstract class Pool implements PoolInterface
             throw $e;
         }
 
-        $connection = $this->queue->pop($this->option->getWaitTimeout());
-
+        try {
+            $connection = $this->queue->pop($this->option->getWaitTimeout());
+        } catch (RuntimeException $e) {
+            // 非协程环境下, Queue 失败处理, 手动执行等待
+            if ($e->getMessage() == "Can't shift from an empty datastructure") {
+                sleep($this->option->getWaitTimeout());
+                $connection = $this->queue->pop($this->option->getWaitTimeout());
+            }
+        }
+        
         if (! $connection instanceof ConnectionPoolInterface) {
             throw new RuntimeException('Connection pool exhausted. Cannot establish new connection before wait_timeout.');
         }
@@ -238,27 +246,22 @@ abstract class Pool implements PoolInterface
 
     /**
      * 初始化连接池配置
-     * @param array $options
+     * @param PoolOptionInterface|null $poolOption
      */
-    protected function initOption(array $options = []): void
+    protected function initPoolOption(?PoolOptionInterface $poolOption = null): void
     {
-        $minConnections = $options['min_connections'] ?? 10;
-        $maxConnections = $options['max_connections'] ?? 100;
-        if ($minConnections > $maxConnections) {
-            $minConnections = $maxConnections - 1;
+        if (! $poolOption instanceof PoolOptionInterface) {
+            $poolOption = make(
+                PoolOption::class
+            );
         }
 
-        $this->option = make(
-            Option::class,
-            [
-                'minConnections' => $minConnections,
-                'maxConnections' => $maxConnections,
-                'connectTimeout' => $options['connect_timeout'] ?? 10.0,
-                'waitTimeout'    => $options['wait_timeout']    ?? 3.0,
-                'heartbeat'      => $options['heartbeat']       ?? -1,
-                'maxIdleTime'    => $options['max_idle_time']   ?? 60.0,
-            ]
-        );
+        /** @var $poolOption PoolOption */
+        if ($poolOption->getMinConnections() > $poolOption->getMaxConnections()) {
+            $poolOption->withMinConnections($poolOption->getMaxConnections() - 1);
+        }
+
+        $this->option = $poolOption;
     }
 
     /**
