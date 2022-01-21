@@ -19,11 +19,14 @@
     }
   ],
   "require": {
-    "php": ">=7.2",
+    "php": ">=7.3",
     "ext-swoole": ">=4.4.5",
     "ext-json": ">=1.0",
     "ext-openssl": ">=7.2",
-    "raylin666/utils": "^1.0"
+    "raylin666/utils": "^1.0",
+    "phpunit/phpunit": "8.5.22",
+    "ext-pdo": "*",
+    "predis/predis": "^1.1"
   },
   "autoload": {
     "psr-4": {
