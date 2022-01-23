@@ -95,6 +95,18 @@ abstract class Pool implements PoolInterface
         $num = $this->getConnectionsNum();
 
         try {
+            $option = $this->getOption();
+            if (!empty($option->getLimitName())) {
+                $token_num = $option->getBucketToken($option->getLimitName(), 1);
+                if ($token_num <= 0) {
+                    throw new RuntimeException('获取令牌失败');
+                }
+            }
+        } catch (\Exception $e) {
+
+        }
+
+        try {
             if ($num === 0 && $this->currentConnections < $this->option->getMaxConnections()) {
                 ++$this->currentConnections;
                 return $this->createConnection();

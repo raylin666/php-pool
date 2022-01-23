@@ -11,6 +11,7 @@
 
 namespace Raylin666\Pool;
 
+use Predis\Client;
 use Raylin666\Contract\PoolOptionInterface;
 
 /**
@@ -68,6 +69,35 @@ class PoolOption implements PoolOptionInterface
     private $maxIdleTime = 60.0;
 
     /**
+     * 令牌的生产方式为：每次请求进来时一次性生产上一次请求到本次请求这一段时间内的令牌
+     * 限流-令牌生产速度 个/秒
+     * @var int
+     */
+    private $limitConnectionsRate = 0;
+
+    /**
+     * redis client
+     * @var
+     */
+    protected $redis;
+
+    /**
+     * 限流桶的名称
+     * @var
+     */
+    private $limitName;
+
+    public function __construct(Client  $redis)
+    {
+        $this->redis = $redis;
+    }
+
+    public function getRedis()
+    {
+        return $this->redis;
+    }
+
+    /**
      * @return int
      */
     public function getMaxConnections(): int
@@ -105,6 +135,64 @@ class PoolOption implements PoolOptionInterface
     {
         $this->minConnections = $minConnections;
         return $this;
+    }
+
+    /**
+     * 获取毫秒
+     * @return float
+     */
+    private function getMillisecond(){
+         list($s1, $s2) = explode(' ', microtime());
+        return (float)sprintf('%.0f', (floatval($s1) + floatval($s2)) * 1000);
+    }
+
+    /**
+     * 获得lua sha
+     * @return mixed
+     */
+    private  function getLuaSha(){
+        return  $this->getRedis()->script('load', file_get_contents(__DIR__ . '/Lua/Limit.lua'));
+    }
+
+    /**
+     * 设置令牌限流
+     * @param int $limitConnectionsRate 每秒产生的令牌数
+     * @param int $bucketCap 桶总数
+     * @param int $period 限流的时间周期，单位为：秒。
+     * @return $this
+     */
+    public function withLimitConnectionsRate(string $limitName, int $limitConnectionsRate, int $bucketCap,int $period)
+    {
+        $this->limitConnectionsRate = $limitConnectionsRate;
+        $redis = $this->getRedis();
+        $millisecond = $this->getMillisecond();
+        //初始化不消耗令牌
+        $redis->evalsha($this->getLuaSha(), 1, $limitName, 0, $millisecond, $bucketCap, $limitConnectionsRate, $period);
+        $this->limitName = $limitName;
+        return $this;
+    }
+
+    /**
+     * 获得token
+     * @param $configName
+     * @param $tokenNum
+     * @return mixed
+     */
+    public function getBucketToken($configName,$tokenNum)
+    {
+        $redis = $this->getRedis();
+        $millisecond = $this->getMillisecond();
+        return $redis->evalsha($this->getLuaSha(), 1, $configName, $tokenNum, $millisecond);
+    }
+
+    public function getLimitName()
+    {
+        return $this->limitName;
+    }
+
+    public function getLimitConnectionsRate()
+    {
+        return $this->limitConnectionsRate;
     }
 
     /**
